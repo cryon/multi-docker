@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t cryon/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true cryon/react-test npm test
+
+after_success:
+  - docker build -t cryon/multi-client ./client
+  - docker build -t cryon/multi-nginx ./nginx
+  - docker build -t cryon/multi-server ./server
+  - docker build -t cryon/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push cryon/multi-client
+  - docker push cryon/multi-nginx
+  - docker push cryon/multi-server
+  - docker push cryon/multi-worker
